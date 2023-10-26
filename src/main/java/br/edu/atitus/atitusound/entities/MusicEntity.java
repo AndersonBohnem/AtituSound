@@ -1,13 +1,23 @@
 package br.edu.atitus.atitusound.entities;
 
 import java.time.Duration;
-import java.util.UUID;
 
-public class MusicEntity {
 
-	private UUID uuid;
-	private String name;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "tb_music")
+public class MusicEntity extends GenericEntity {
+
+
+
 	private Duration duration;
+	@ManyToOne(fetch = FetchType.EAGER, optional = false)
+	@JoinColumn(name = "artist_uuid")
 	private ArtistEntity artist;
 	private int like_count;	
 	private String url;
@@ -25,18 +35,6 @@ public class MusicEntity {
 		this.duration = duration;
 	}
 	
-	public UUID getUuid() {
-		return uuid;
-	}
-	public void setUuid(UUID uuid) {
-		this.uuid = uuid;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
 	public ArtistEntity getArtist() {
 		return artist;
 	}
