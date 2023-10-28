@@ -17,7 +17,7 @@ public class MusicEntity extends GenericEntity {
 
 	private Duration duration;
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)
-	@JoinColumn(name = "artist_uuid")
+	@JoinColumn(nullable = false, name = "artist_uuid")
 	private ArtistEntity artist;
 	private int like_count;	
 	private String url;

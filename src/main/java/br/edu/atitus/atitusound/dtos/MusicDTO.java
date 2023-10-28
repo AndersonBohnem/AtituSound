@@ -7,7 +7,7 @@ public class MusicDTO {
 	private String name;
 	private Duration duration;
 	private String url;
-	private ArtistOnlyUUID artist;
+	private DTOOnlyUUID artist;
 	
 	public String getName() {
 		return name;
@@ -27,10 +27,10 @@ public class MusicDTO {
 	public void setUrl(String url) {
 		this.url = url;
 	}
-	public ArtistOnlyUUID getArtist() {
+	public DTOOnlyUUID getArtist() {
 		return artist;
 	}
-	public void setArtist(ArtistOnlyUUID artist) {
+	public void setArtist(DTOOnlyUUID artist) {
 		this.artist = artist;
 	}
 	
