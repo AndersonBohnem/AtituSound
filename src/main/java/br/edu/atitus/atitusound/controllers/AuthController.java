@@ -1,6 +1,6 @@
 package br.edu.atitus.atitusound.controllers;
 
-import org.springframework.beans.BeanUtils;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,53 +16,47 @@ import br.edu.atitus.atitusound.dtos.UserDTO;
 import br.edu.atitus.atitusound.entities.UserEntity;
 import br.edu.atitus.atitusound.services.UserService;
 import br.edu.atitus.atitusound.utils.JwtUtils;
-import ch.qos.logback.core.joran.util.beans.BeanUtil;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 	
 	private final UserService service;
-	private final AuthenticationConfiguration auth;
+	private final AuthenticationConfiguration authConfig;
 
-	private UserEntity convertDTO2Entity(UserDTO dto) {
-		var user = new UserEntity();
-		BeanUtils.copyProperties(dto, user);
-		return user;
-	}
-	
-	public AuthController(UserService service, AuthenticationConfiguration auth) {
+	public AuthController(UserService service, AuthenticationConfiguration authConfig) {
 		super();
 		this.service = service;
-		this.auth = auth;
-	}
-	
-	@PostMapping("/signin")
-	public ResponseEntity<String> signin(@RequestBody SigninDTO signin) {
-		//Realizar a autenticação
-		try {
-			auth.getAuthenticationManager().authenticate(new UsernamePasswordAuthenticationToken(signin.getUsername(), signin.getPassword()));
-		} catch (AuthenticationException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).header("error", e.getMessage()).build();
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).header("error", e.getMessage()).build();
-		}
-		//Gerar o token e retornar para usuário
-		String jwt = JwtUtils.generateTokenFromUsername(signin.getUsername());
-		return ResponseEntity.ok(jwt);
+		this.authConfig = authConfig;
 	}
 	
 	@PostMapping("/signup")
-	public ResponseEntity<UserEntity> PostSignup(@RequestBody UserDTO dto ) {
-		
-		var user = convertDTO2Entity(dto);
+	public ResponseEntity<UserEntity> PostSignup(@RequestBody UserDTO dto) {
+		UserEntity entidade = new UserEntity();
+		entidade.setName(dto.getName());
+		entidade.setEmail(dto.getEmail());
+		entidade.setUsername(dto.getUsername());
+		entidade.setPassword(dto.getPassword());
 		
 		try {
-			service.save(user);
+			service.save(entidade);
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
 		}
-		return ResponseEntity.status(HttpStatus.CREATED).body(user);
+		return ResponseEntity.status(HttpStatus.CREATED).body(entidade);
 	}
 	
+	@PostMapping("/signin")
+	public ResponseEntity<String> PostSignin(@RequestBody SigninDTO signin) {
+		try {
+			var auth = authConfig.getAuthenticationManager().authenticate(
+					new UsernamePasswordAuthenticationToken(signin.getUsername(), signin.getPassword()));
+		} catch (AuthenticationException e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).header("error", e.getMessage()).build();
+		}
+		return ResponseEntity.ok(JwtUtils.generateTokenFromUsername(signin.getUsername()));
+	}
+
 }

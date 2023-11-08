@@ -20,41 +20,41 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import br.edu.atitus.atitusound.entities.GenericEntity;
 import br.edu.atitus.atitusound.services.GenericService;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
-public abstract class GenericController <TEntidade extends GenericEntity, TDto> {
+@ApiResponses(value = {
+	    @ApiResponse(responseCode = "400", description = "ERRO DE VALIDAÇÃO OU REQUISIÇÃO INVÁLIDA", 
+	        content = @Content, headers = @Header(name = "error", description = "Descrição do erro", schema = @Schema(implementation = String.class))),
+	    @ApiResponse(responseCode = "401", description = "UNAUTHORIZED", content = @Content),
+	    @ApiResponse(responseCode = "403", description = "FORBIDDEN", content = @Content)
+	})
+public abstract class GenericController<TEntidade extends GenericEntity, TDTO> {
+	
+	protected abstract GenericService<TEntidade> getService();
+	
+	protected abstract TEntidade convertDTO2Entity(TDTO dto);
 
-	public abstract GenericService<TEntidade> getService();
-	
-	protected abstract TEntidade convertDTO2Entity(TDto dto);
-	
 	@PostMapping
-	public ResponseEntity<TEntidade> post(@RequestBody TDto dto){
-		TEntidade entidade = convertDTO2Entity(dto);
+	@ApiResponse(responseCode = "201", description = "REGISTRO CRIADO COM SUCESSO!")
+	public ResponseEntity<TEntidade> postSave(@RequestBody TDTO dto){
+		TEntidade entity = convertDTO2Entity(dto);
 		try {
-			getService().save(entidade);
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().header( "error", e.getMessage()).build();
-		}
-		return ResponseEntity.status(HttpStatus.CREATED).body(entidade);
-	}
-	
-	@GetMapping("/{uuid}")
-	public ResponseEntity<TEntidade> getById(@PathVariable UUID uuid) {
-		Optional<TEntidade> entidade;
-		try {
-			entidade = getService().findById(uuid);
+			getService().save(entity);
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
 		}
-		if (entidade.isEmpty())
-			return ResponseEntity.notFound().build();
-		else
-			return ResponseEntity.ok(entidade.get());
+		return ResponseEntity.status(HttpStatus.CREATED).body(entity);
 	}
 	
 	@GetMapping
-	public ResponseEntity<Page<List<TEntidade>>> get(@PageableDefault(page = 0, size = 10, sort = "name", direction = Direction.ASC) Pageable pageable,@RequestParam String name) {
-	
+	@ApiResponse(responseCode = "200", description = "OK")
+	public ResponseEntity<Page<List<TEntidade>>> getFind(
+			@PageableDefault(page = 0, size = 10, sort = "name", direction = Direction.ASC) Pageable pageable,
+			@RequestParam String name) {
 		Page<List<TEntidade>> lista;
 		try {
 			lista = getService().findByNameContainingIgnoreCase(pageable, name);
@@ -64,16 +64,30 @@ public abstract class GenericController <TEntidade extends GenericEntity, TDto> 
 		return ResponseEntity.ok(lista);
 	}
 	
-	@PutMapping("/{uuid}")
-	public ResponseEntity<TEntidade> put(@RequestBody TDto dto,@PathVariable UUID uuid) {
-		TEntidade entidade = convertDTO2Entity(dto);
-		entidade.setUuid(uuid);
+	@GetMapping("/{uuid}")
+	public ResponseEntity<TEntidade> getFindById(@PathVariable UUID uuid){
+		Optional<TEntidade> entity;
 		try {
-			getService().save(entidade);
+			entity = getService().findById(uuid);
 		} catch (Exception e) {
-			return ResponseEntity.badRequest().header( "error", e.getMessage()).build();
+			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
 		}
-		return ResponseEntity.status(HttpStatus.OK).body(entidade);
+		if (entity.isEmpty())
+			return ResponseEntity.notFound().build();
+		else
+			return ResponseEntity.ok(entity.get());
+	}
+	
+	@PutMapping("/{uuid}")
+	public ResponseEntity<TEntidade> put(@PathVariable UUID uuid, @RequestBody TDTO dto) {
+		TEntidade entity = convertDTO2Entity(dto);
+		entity.setUuid(uuid);
+		try {
+			getService().save(entity);
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
+		}
+		return ResponseEntity.ok(entity);
 	}
 	
 	@DeleteMapping("/{uuid}")
@@ -85,9 +99,4 @@ public abstract class GenericController <TEntidade extends GenericEntity, TDto> 
 		}
 		return ResponseEntity.ok().build();
 	}
-	
-	
-	
-	
-	
 }

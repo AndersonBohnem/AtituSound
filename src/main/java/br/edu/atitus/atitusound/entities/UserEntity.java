@@ -1,5 +1,6 @@
 package br.edu.atitus.atitusound.entities;
 
+
 import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -7,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
@@ -15,23 +15,19 @@ import jakarta.persistence.Table;
 @Table(name = "tb_user")
 public class UserEntity extends GenericEntity implements UserDetails{
 	
-	@Column(nullable = false)
 	private String email;
 	
-	@Column(nullable = false)
 	private String username;
 	
-	@Column(nullable = false)
 	@JsonIgnore
 	private String password;
-	
-	
+
 	public String getEmail() {
 		return email;
 	}
 
-	public void setEmail(String name) {
-		this.email = name;
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	public String getUsername() {
@@ -74,5 +70,7 @@ public class UserEntity extends GenericEntity implements UserDetails{
 	public boolean isEnabled() {
 		return true;
 	}
+	
+	
 
 }

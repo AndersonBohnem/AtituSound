@@ -55,15 +55,9 @@ public interface GenericService<TEntidade extends GenericEntity> {
 	}
 
 
-	default Page<List<TEntidade>> findByNameContainingIgnoreCase(Pageable pageable, String name) {
+	default Page<List<TEntidade>> findByNameContainingIgnoreCase(Pageable pageable, String name) throws Exception {
 		validateFindByName(pageable, name);
 		return getRepository().findByNameContainingIgnoreCase(pageable, name);
-	}
-
-
-	default Page<List<TEntidade>> findByNameContainingIgnoreCase1(Pageable pageable, String name) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	default void validateFindById(UUID uuid) {
